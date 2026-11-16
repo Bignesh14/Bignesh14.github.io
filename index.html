@@ -245,6 +245,11 @@ footer{padding:30px 0 50px;color:var(--mute);font-size:13px;text-align:center}
   <div class="reveal"><div class="kicker">Projects</div><h2>Built from the ground up</h2>
   <p class="lede">From hand-written parsers to hardware descriptions, I like understanding every layer.</p></div>
   <div class="grid3">
+    <div class="card reveal" style="grid-column:1/-1"><span class="status done">Live</span><h3>Lumen Atlas: where the Sun and Earth stay up at the lunar south pole</h3>
+      <p>Pick any spot near the Moon's south pole and any hour, and see whether a lander keeps sunlight for power and Earth in view for radio, with countdowns to sunset and Earthset and a Plan B when the launch slips. Built for the NASA Space Apps 2026 challenge <i>Lunar Landing Site Navigator</i>.</p>
+      <p><b>Under the hood:</b> two custom Metal GPU kernels on an Apple M5 Max traced 360° horizons for every 20 m pixel of NASA's nine Artemis III candidate regions (22.9 M pixels, 8.2 B rays) and checked the Sun and Earth for every hour of 2027–2028, in about 66 s. Reordering GPU threads so neighbours trace parallel rays made it 7× faster with identical output. Checked against NASA JPL Horizons (&lt;0.0001°) and LROC lander heights (within 7 m).</p>
+      <div class="tags"><span class="tag">Metal</span><span class="tag">MLX</span><span class="tag">Python</span><span class="tag">JavaScript</span><span class="tag">NASA LOLA</span><span class="tag">SPICE</span></div>
+      <div class="links-row"><a class="btn primary" href="https://bignesh14.github.io/lumen-atlas/" target="_blank" rel="noopener">Open the app →</a><a class="btn" href="https://github.com/Bignesh14/lumen-atlas" target="_blank" rel="noopener">Code →</a><a class="btn" href="https://github.com/Bignesh14/lumen-atlas/blob/main/docs/LumenAtlas-demo.mp4" target="_blank" rel="noopener">Demo video →</a></div></div>
     <div class="card reveal"><span class="status done">Completed</span><h3>TinyC-Lite Compiler</h3>
       <p>A source-to-source compiler in portable C11: hand-written lexer, recursive-descent parser, semantic analysis with a symbol table, and C code generation. Builds unchanged on macOS and Windows.</p>
       <p><b>Now:</b> an AArch64 backend that emits native ARM assembly.</p>
@@ -420,7 +425,7 @@ document.getElementById("copyMail").onclick = copyMail;
 const cmds = [
   ["Flagship project", "#work"], ["Projects", "#projects"], ["Research", "#research"], ["Education & milestones", "#path"], ["Contact", "#contact"],
   ["Open GitHub", "https://github.com/Bignesh14"], ["Glimmer-M5-SelfTune code", "https://github.com/Bignesh14/glimmer-m5-selftune"],
-  ["Watch the 3-min demo", "https://youtu.be/h_H0wiRkM7U"], ["TinyC-Lite compiler", "https://github.com/Bignesh14/Tiny-C-Compiler"],
+  ["Watch the 3-min demo", "https://youtu.be/h_H0wiRkM7U"], ["TinyC-Lite compiler", "https://github.com/Bignesh14/Tiny-C-Compiler"], ["Open Lumen Atlas", "https://bignesh14.github.io/lumen-atlas/"], ["Lumen Atlas code", "https://github.com/Bignesh14/lumen-atlas"],
   ...(LINKS.linkedin ? [["Open LinkedIn", LINKS.linkedin]] : []), ...(LINKS.x ? [["Open X", LINKS.x]] : []),
   ["Copy email", copyMail], ["Toggle light / dark", toggleTheme]
 ];
