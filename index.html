@@ -237,6 +237,15 @@ body.intro-lock:not(.intro-out)>header,body.intro-lock:not(.intro-out)>main,body
 .musicbtn.on .bars i:nth-child(2){animation-delay:-.3s}
 .musicbtn.on .bars i:nth-child(3){animation-delay:-.6s}
 @keyframes eq{0%,100%{height:4px}50%{height:14px}}
+.music-hint{position:fixed;z-index:75;display:flex;align-items:center;gap:10px;max-width:min(300px,calc(100vw - 20px));padding:10px 14px 10px 10px;
+  border-radius:12px;border:1px solid rgba(240,140,50,.55);background:var(--card);color:var(--ink);font:500 13px/1.35 Inter,sans-serif;text-align:left;cursor:pointer;
+  box-shadow:0 10px 30px rgba(0,0,0,.25),0 0 22px rgba(255,120,40,.25);opacity:0;transform:translateY(-6px);transition:opacity .45s ease,transform .45s ease}
+.music-hint.show{opacity:1;transform:none}
+.music-hint::before{content:"";position:absolute;top:-6px;right:var(--ax,18px);width:10px;height:10px;margin-right:-5px;background:var(--card);
+  border-left:1px solid rgba(240,140,50,.55);border-top:1px solid rgba(240,140,50,.55);transform:rotate(45deg)}
+.music-hint b{font-weight:650}
+.mh-ic{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10px;padding-left:2px;color:#3a0d06;
+  background:radial-gradient(circle at 35% 30%,#ffe3a1,#f0a03a 45%,#a8321a 100%);box-shadow:0 0 10px rgba(255,170,60,.6)}
 @media (prefers-reduced-motion: reduce){.musicbtn.on .bars i{animation:none;height:10px}}
 </style>
 </head>
@@ -772,11 +781,11 @@ K.onclick = e => { if (e.target === K) closeK(); };
   }
 })();
 
-/* ===== background music: starts softly on the visitor's first click or key press; header button mutes / plays ===== */
+/* ===== background music: off by default; after the visitor's first click a small hint points at the play button and fades after 9 s ===== */
 (function(){
   const a = document.getElementById("bgm"), b = document.getElementById("musicBtn"); if (!a || !b) return;
-  const VOL = .35; let muted = false, started = false, fadeId = 0;
-  try { muted = localStorage.getItem("musicMuted") === "1"; } catch (e) {}
+  const VOL = .35; let fadeId = 0, hint = null, hinted = false;
+  try { hinted = sessionStorage.getItem("musicHint") === "1"; } catch (e) {}
   function ui(){ const on = !a.paused; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Mute music" : "Play music"); }
   function fade(to, ms, then){ cancelAnimationFrame(fadeId); const from = a.volume, t0 = performance.now();
     (function step(n){ const p = Math.min(1, (n - t0) / ms); a.volume = from + (to - from) * p;
@@ -785,19 +794,32 @@ K.onclick = e => { if (e.target === K) closeK(); };
     if (p && p.then) p.then(ok).catch(ui); else ok(); }
   function stop(){ fade(0, 450, () => { a.pause(); ui(); }); }
   a.addEventListener("loadedmetadata", () => { b.hidden = false; });
-  if (a.readyState >= 1) b.hidden = false;                     // metadata may already be loaded
-  a.addEventListener("playing", () => { b.hidden = false; });
-  a.addEventListener("error", () => { b.hidden = true; });      // file missing -> no button, site unaffected
+  if (a.readyState >= 1) b.hidden = false;
+  a.addEventListener("error", () => { b.hidden = true; });      // file missing -> no button, no hint
   a.addEventListener("play", ui); a.addEventListener("pause", ui);
-  function first(e){
-    if (started || (e.target && e.target.closest && e.target.closest("#musicBtn"))) return;
-    started = true; ["click", "keydown", "touchend"].forEach(t => removeEventListener(t, first, true));
-    if (!muted) play();
+
+  function hideHint(){ if (!hint) return; const h = hint; hint = null; h.classList.remove("show"); setTimeout(() => h.remove(), 500); }
+  function place(){ if (!hint) return; const r = b.getBoundingClientRect(), gap = innerWidth - r.right, right = Math.max(10, gap);
+    hint.style.top = (r.bottom + 10) + "px"; hint.style.right = right + "px";
+    hint.style.setProperty("--ax", (gap - right + r.width / 2) + "px"); }    // arrow points at the button's centre
+  function showHint(){
+    if (hinted || b.hidden || !a.paused) return; hinted = true;
+    try { sessionStorage.setItem("musicHint", "1"); } catch (e) {}
+    hint = document.createElement("button"); hint.type = "button"; hint.className = "music-hint";
+    hint.innerHTML = '<span class="mh-ic" aria-hidden="true">&#9654;</span><span><b>The dragon has a song.</b> Press play to hear it.</span>';
+    hint.addEventListener("click", () => { hideHint(); play(); });
+    document.body.appendChild(hint); place(); addEventListener("resize", place); addEventListener("scroll", place, { passive: true });
+    requestAnimationFrame(() => requestAnimationFrame(() => hint && hint.classList.add("show")));
+    setTimeout(hideHint, 9000);
   }
-  ["click", "keydown", "touchend"].forEach(t => addEventListener(t, first, true));
-  b.addEventListener("click", e => { e.stopPropagation(); started = true;
-    if (a.paused) { muted = false; play(); } else { muted = true; stop(); }
-    try { localStorage.setItem("musicMuted", muted ? "1" : "0"); } catch (err) {} });
+  // first click/tap/key: wait until the main page is showing (intro gone), then point at the button
+  function first(e){
+    if (e.target && e.target.closest && e.target.closest("#musicBtn")) return;
+    ["click", "keydown", "touchend"].forEach(t => removeEventListener(t, first, true));
+    (function wait(){ if (document.getElementById("intro")) return setTimeout(wait, 200); setTimeout(showHint, 500); })();
+  }
+  if (!hinted) ["click", "keydown", "touchend"].forEach(t => addEventListener(t, first, true));
+  b.addEventListener("click", e => { e.stopPropagation(); hideHint(); if (a.paused) play(); else stop(); });
 })();
 </script>
 </body>
